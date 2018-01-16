@@ -15,6 +15,7 @@ import {
   Text,
   View,
   ViewPropTypes,
+  I18nManager,
 } from 'react-native';
 
 const SwipeoutBtn = createReactClass({
@@ -195,6 +196,14 @@ const Swipeout = createReactClass({
       else this.props.scroll(true);
     }
     if (this.state.swiping) {
+      if (I18nManager.isRTL) {
+        if (posX > 0 && this.props.right) {
+            this.setState({ contentPos: Math.min(-posX, 0) })
+        } else if (posX < 0 && this.props.left) {
+            this.setState({ contentPos: Math.max(-posX, 0) })
+        }
+    }
+    else {
       //  move content to reveal swipeout
       if (posX < 0 && this.props.right) {
         this.setState({ contentPos: Math.min(posX, 0) })
@@ -202,6 +211,7 @@ const Swipeout = createReactClass({
         this.setState({ contentPos: Math.max(posX, 0) })
       };
     }
+  }
   },
 
   _handlePanResponderEnd: function(e: Object, gestureState: Object) {
@@ -216,8 +226,13 @@ const Swipeout = createReactClass({
     var openX = contentWidth*0.33;
 
     //  should open swipeout
-    var openLeft = posX > openX || posX > btnsLeftWidth/2;
-    var openRight = posX < -openX || posX < -btnsRightWidth/2;
+    if (I18nManager.isRTL) {
+      var openLeft = posX < -openX || posX < -btnsLeftWidth / 2
+      var openRight = posX > openX || posX > btnsRightWidth / 2
+  } else {
+      var openLeft = posX > openX || posX > btnsLeftWidth / 2
+      var openRight = posX < -openX || posX < -btnsRightWidth / 2
+  }
 
     //  account for open swipeouts
     if (this.state.openedRight) var openRight = posX-openX < -openX;
@@ -226,12 +241,25 @@ const Swipeout = createReactClass({
     //  reveal swipeout on quick swipe
     var timeDiff = (new Date()).getTime() - this.state.timeStart < 200;
     if (timeDiff) {
-      var openRight = posX < -openX/10 && !this.state.openedLeft;
-      var openLeft = posX > openX/10 && !this.state.openedRight;
+        if (I18nManager.isRTL) {
+            var openRight = posX > openX / 10 && !this.state.openedLeft
+            var openLeft = posX < -openX / 10 && !this.state.openedRight
+        } else {
+            var openRight = posX < -openX / 10 && !this.state.openedLeft
+            var openLeft = posX > openX / 10 && !this.state.openedRight
+        }
     }
 
     if (this.state.swiping) {
-      if (openRight && contentPos < 0 && posX < 0) {
+      if (I18nManager.isRTL) {
+        if (openRight && contentPos < 0 && posX > 0) {
+            this._open(-btnsRightWidth, 'right')
+        } else if (openLeft && contentPos > 0 && posX < 0) {
+            this._open(btnsLeftWidth, 'left')
+        } else {
+            this._close()
+        }
+    } else if (openRight && contentPos < 0 && posX < 0) {
         this._open(-btnsRightWidth, 'right');
       } else if (openLeft && contentPos > 0 && posX > 0) {
         this._open(btnsLeftWidth, 'left');
