@@ -43,7 +43,7 @@ var SwipeoutBtn = (0, _createReactClass2.default)({
     color: _propTypes2.default.string,
     component: _propTypes2.default.node,
     onPress: _propTypes2.default.func,
-    text: _propTypes2.default.string,
+    text: _propTypes2.default.node,
     type: _propTypes2.default.string,
     underlayColor: _propTypes2.default.string
   },
@@ -221,12 +221,20 @@ var Swipeout = (0, _createReactClass2.default)({
       if (moveX) this.props.scroll(false);else this.props.scroll(true);
     }
     if (this.state.swiping) {
-      //  move content to reveal swipeout
-      if (posX < 0 && this.props.right) {
-        this.setState({ contentPos: Math.min(posX, 0) });
-      } else if (posX > 0 && this.props.left) {
-        this.setState({ contentPos: Math.max(posX, 0) });
-      };
+      if (_reactNative.I18nManager.isRTL) {
+        if (posX > 0 && this.props.right) {
+          this.setState({ contentPos: Math.min(-posX, 0) });
+        } else if (posX < 0 && this.props.left) {
+          this.setState({ contentPos: Math.max(-posX, 0) });
+        }
+      } else {
+        //  move content to reveal swipeout
+        if (posX < 0 && this.props.right) {
+          this.setState({ contentPos: Math.min(posX, 0) });
+        } else if (posX > 0 && this.props.left) {
+          this.setState({ contentPos: Math.max(posX, 0) });
+        };
+      }
     }
   },
 
@@ -242,8 +250,13 @@ var Swipeout = (0, _createReactClass2.default)({
     var openX = contentWidth * 0.33;
 
     //  should open swipeout
-    var openLeft = posX > openX || posX > btnsLeftWidth / 2;
-    var openRight = posX < -openX || posX < -btnsRightWidth / 2;
+    if (_reactNative.I18nManager.isRTL) {
+      var openLeft = posX < -openX || posX < -btnsLeftWidth / 2;
+      var openRight = posX > openX || posX > btnsRightWidth / 2;
+    } else {
+      var openLeft = posX > openX || posX > btnsLeftWidth / 2;
+      var openRight = posX < -openX || posX < -btnsRightWidth / 2;
+    }
 
     //  account for open swipeouts
     if (this.state.openedRight) var openRight = posX - openX < -openX;
@@ -252,12 +265,25 @@ var Swipeout = (0, _createReactClass2.default)({
     //  reveal swipeout on quick swipe
     var timeDiff = new Date().getTime() - this.state.timeStart < 200;
     if (timeDiff) {
-      var openRight = posX < -openX / 10 && !this.state.openedLeft;
-      var openLeft = posX > openX / 10 && !this.state.openedRight;
+      if (_reactNative.I18nManager.isRTL) {
+        var openRight = posX > openX / 10 && !this.state.openedLeft;
+        var openLeft = posX < -openX / 10 && !this.state.openedRight;
+      } else {
+        var openRight = posX < -openX / 10 && !this.state.openedLeft;
+        var openLeft = posX > openX / 10 && !this.state.openedRight;
+      }
     }
 
     if (this.state.swiping) {
-      if (openRight && contentPos < 0 && posX < 0) {
+      if (_reactNative.I18nManager.isRTL) {
+        if (openRight && contentPos < 0 && posX > 0) {
+          this._open(-btnsRightWidth, 'right');
+        } else if (openLeft && contentPos > 0 && posX < 0) {
+          this._open(btnsLeftWidth, 'left');
+        } else {
+          this._close();
+        }
+      } else if (openRight && contentPos < 0 && posX < 0) {
         this._open(-btnsRightWidth, 'right');
       } else if (openLeft && contentPos > 0 && posX > 0) {
         this._open(btnsLeftWidth, 'left');
@@ -338,9 +364,11 @@ var Swipeout = (0, _createReactClass2.default)({
     var _this3 = this;
 
     this.refs.swipeoutContent.measure(function (ox, oy, width, height) {
+      var btnWidth = _this3.props.buttonWidth || width / 5;
+
       _this3.setState({
-        btnWidth: width / 5,
-        btnsRightWidth: _this3.props.right ? width / 5 * _this3.props.right.length : 0
+        btnWidth: btnWidth,
+        btnsRightWidth: _this3.props.right ? btnWidth * _this3.props.right.length : 0
       }, function () {
         _this3._tweenContent('contentPos', -_this3.state.btnsRightWidth);
         _this3._callOnOpen();
@@ -358,9 +386,11 @@ var Swipeout = (0, _createReactClass2.default)({
     var _this4 = this;
 
     this.refs.swipeoutContent.measure(function (ox, oy, width, height) {
+      var btnWidth = _this4.props.buttonWidth || width / 5;
+
       _this4.setState({
-        btnWidth: width / 5,
-        btnsLeftWidth: _this4.props.left ? width / 5 * _this4.props.left.length : 0
+        btnWidth: btnWidth,
+        btnsLeftWidth: _this4.props.left ? btnWidth * _this4.props.left.length : 0
       }, function () {
         _this4._tweenContent('contentPos', _this4.state.btnsLeftWidth);
         _this4._callOnOpen();
