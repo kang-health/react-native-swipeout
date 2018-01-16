@@ -203,6 +203,7 @@ const Swipeout = createReactClass({
             this.setState({ contentPos: Math.max(-posX, 0) })
         }
     }
+    else {
       //  move content to reveal swipeout
       if (posX < 0 && this.props.right) {
         this.setState({ contentPos: Math.min(posX, 0) })
@@ -210,6 +211,7 @@ const Swipeout = createReactClass({
         this.setState({ contentPos: Math.max(posX, 0) })
       };
     }
+  }
   },
 
   _handlePanResponderEnd: function(e: Object, gestureState: Object) {
